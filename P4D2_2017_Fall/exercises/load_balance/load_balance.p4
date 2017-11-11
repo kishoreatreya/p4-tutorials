@@ -51,6 +51,7 @@ struct headers {
     tcp_t      tcp;
 }
 
+
 /*************************************************************************
 *********************** P A R S E R  ***********************************
 *************************************************************************/
@@ -104,6 +105,9 @@ control MyIngress(inout headers hdr,
     action set_ecmp_select(bit<16> ecmp_base, bit<32> ecmp_count) {
         /* TODO: hash on 5-tuple and save the hash result in meta.ecmp_select 
            so that the ecmp_nhop table can use it to make a forwarding decision accordingly */
+           bit<32> res;
+           hash(res, HashAlgorithm.crc32, ecmp_base, {hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, hdr.ipv4.protocol, hdr.tcp.srcPort, hdr.tcp.dstPort}, ecmp_count);
+           meta.ecmp_select = (bit<14>)res;
     }
     action set_nhop(bit<48> nhop_dmac, bit<32> nhop_ipv4, bit<9> port) {
         hdr.ethernet.dstAddr = nhop_dmac;
@@ -138,6 +142,8 @@ control MyIngress(inout headers hdr,
         }
     }
 }
+
+
 
 /*************************************************************************
 ****************  E G R E S S   P R O C E S S I N G   *******************
